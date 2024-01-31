@@ -54,7 +54,6 @@ const expandField = (event: MouseEvent) => {
     const target = event.target as HTMLElement
     if (target.dataset.fieldId != null) {
         const selectedFieldId = target.dataset.fieldId
-        console.log(selectedFieldId)
         if (expandedFields.value.includes(selectedFieldId)) {
             const index = expandedFields.value.indexOf(selectedFieldId)
             expandedFields.value.splice(index, 1)
@@ -113,7 +112,7 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                 Confluence
             </a>
         </div>
-        <div class="tabs">
+        <div v-if="form.editorJson?.tabs" class="tabs">
             <div v-for="(tab, index) in form.editorJson.tabs" :class="`tab ${index === 0 ? 'active' : ''}`"
                 :data-tab-id="tab.id" @click="selectTab">
                 {{ tab.title }}

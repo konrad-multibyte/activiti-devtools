@@ -28,7 +28,6 @@ onMounted(async () => {
     const { firestore } = useFirebase();
     const querySnapshot = await getDocs(collection(firestore, 'forms-meta'))
     forms.value = querySnapshot.docs.map(doc => doc.data() as FormMeta)
-    console.log(forms.value)
 })
 
 const selectFile = (payload: Event) => {

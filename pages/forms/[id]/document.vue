@@ -48,13 +48,12 @@ function capitalize(string: string, lower = false) {
     return (lower ? string.toLowerCase() : string).replace(/(?:^|\s|["'([{])+\S/g, match => match.toUpperCase())
 }
 
-function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityCondition | null) {
+function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityCondition | null | undefined) {
     const conditions = []
-    let nextVisibilityCondition = null
-    do {
+    while (nestedVisibilityCondition !== null) {
         conditions.push(nestedVisibilityCondition)
-        nextVisibilityCondition = nestedVisibilityCondition?.nextCondition
-    } while (nextVisibilityCondition != null)
+        nestedVisibilityCondition = nestedVisibilityCondition?.nextCondition
+    }
     return conditions
 }
 
@@ -162,8 +161,7 @@ function configurableTableInputFieldVisibility(visibilityConditions: Configurabl
                                                 :key="condition.leftFormFieldId">
                                                 If <a :href="`#${condition.leftFormFieldId}`"
                                                     @click="highlightField(condition.leftFormFieldId)">{{
-                                                        condition.leftFormFieldId }}</a> {{ condition.operator }} {{
-        condition.rightValue }}{{ condition.rightFormFieldId }}
+                                                        condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}
                                             </p>
                                         </td>
                                         <td v-else>
@@ -237,7 +235,7 @@ function configurableTableInputFieldVisibility(visibilityConditions: Configurabl
             </div>
         </div>
         <div v-else>
-            <p>poop</p>
+            <p>lol</p>
         </div>
     </main>
 </template>
