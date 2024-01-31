@@ -1,0 +1,23 @@
+.tabs {
+    display: flex;
+    flex-direction: row;
+}
+
+.tabs:first-child {
+    padding-left: 0;
+}
+
+.tabs:last-child {
+    padding-right: 0;
+}
+
+.tab.active {
+    background-color: var(--azure-secondary);
+    color: white;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.tab {
+    padding: 1em;
+}
