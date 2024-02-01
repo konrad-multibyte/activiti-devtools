@@ -3,7 +3,7 @@ import { collection, getDocs } from 'firebase/firestore'
 import { useFirebase } from '~/composables/useFirebase'
 import type { FormMeta } from '~/types';
 
-const forms = ref<FormMeta[]>()
+const forms = ref<FormMeta[]>([])
 const uploadFile = ref<File>({
     lastModified: 0,
     name: '',
@@ -24,10 +24,14 @@ const uploadFile = ref<File>({
     }
 })
 
-onMounted(async () => {
+const getForms = async () => {
     const { firestore } = useFirebase();
     const querySnapshot = await getDocs(collection(firestore, 'forms-meta'))
     forms.value = querySnapshot.docs.map(doc => doc.data() as FormMeta)
+}
+
+onMounted(async () => {
+    await getForms();
 })
 
 const selectFile = (payload: Event) => {
@@ -48,7 +52,7 @@ const sendFile = async () => {
     } catch (error) {
         console.log(error)
     }
-    refreshNuxtData('getFormsForFormDisplay')
+    await getForms();
 }
 </script>
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { doc, onSnapshot } from "firebase/firestore";
-import { isContainer, type Form, type FormContainer, type FormField, type VisiblityCondition } from "~/types/index.d.js"
+import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
+import { routerKey } from "vue-router";
+import type { Form, VisiblityCondition } from "~/types/index.d.js"
 
 const route = useRoute();
 const id = route.params.id as string
@@ -34,6 +35,14 @@ onMounted(async () => {
         }
     });
 })
+
+const removeForm = async () => {
+    const { firestore } = useFirebase();
+    const router  = useRouter();
+    await deleteDoc(doc(firestore, 'forms', id))
+    await deleteDoc(doc(firestore, 'forms-meta', id))
+    router.push('/forms');
+}
 
 const selectTab = async (event: MouseEvent) => {
     const target = event.target as HTMLElement
@@ -111,6 +120,9 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
             <a class="button button-primary" :href="`/forms/${id}/document`">
                 Confluence
             </a>
+            <button class="button button-danger" @click="removeForm">
+                Delete
+            </button>
         </div>
         <div v-if="form.editorJson?.tabs" class="tabs">
             <div v-for="(tab, index) in form.editorJson.tabs" :class="`tab ${index === 0 ? 'active' : ''}`"
