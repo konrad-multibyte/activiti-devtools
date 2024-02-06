@@ -1,7 +1,20 @@
 <script setup lang="ts">
 import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
-import { routerKey } from "vue-router";
 import type { Form, VisiblityCondition } from "~/types/index.d.js"
+
+useHead({
+    title: `Form - Activiti Devtools`,
+    link: [
+        {
+            rel: 'dns-prefetch',
+            href: 'https://firestore.googleapis.com'
+        },
+        {
+            rel: 'preconnect',
+            href: 'https://firestore.googleapis.com'
+        }
+    ]
+})
 
 const route = useRoute();
 const id = route.params.id as string
@@ -32,6 +45,9 @@ onMounted(async () => {
         const data = snap.data();
         if (data != undefined) {
             form.value = data as Form
+            useHead({
+                title: `${form.value.name} - Activiti Devtools`
+            });
         }
     });
 })

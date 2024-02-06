@@ -24,6 +24,20 @@ const uploadFile = ref<File>({
     }
 })
 
+useHead({
+    title: 'Forms - Activiti Devtools',
+    link: [
+        {
+            rel: 'dns-prefetch',
+            href: 'https://firestore.googleapis.com'
+        },
+        {
+            rel: 'preconnect',
+            href: 'https://firestore.googleapis.com'
+        }
+    ]
+})
+
 const getForms = async () => {
     const { firestore } = useFirebase();
     const querySnapshot = await getDocs(collection(firestore, 'forms-meta'))

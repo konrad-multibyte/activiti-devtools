@@ -12,7 +12,3 @@
     </nav>
     <NuxtPage />
 </template>
-
-<script>
-console.log('=== Are you a developer? ===')
-</script>

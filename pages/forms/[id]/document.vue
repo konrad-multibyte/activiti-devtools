@@ -27,6 +27,18 @@ const form = ref<Form>(
     }
 )
 
+useHead(
+    {
+        title: `Form - Activiti Devtools`,
+        link: [
+        {
+            rel: 'preconnect',
+            href: 'https://firestore.googleapis.com'
+        }
+    ]
+    }
+)
+
 onMounted(async () => {
     const { firestore } = useFirebase();
     const docRef = doc(firestore, 'forms', id);
@@ -38,7 +50,7 @@ onMounted(async () => {
         useConfluence(data as Form)
         useHead(
             {
-                title: form.value.name
+                title: `${form.value.name} - Activiti Devtools`
             }
         )
     })

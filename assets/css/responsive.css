@@ -12,43 +12,62 @@
         width: auto;
     }
 
-    main.responsive {
+    main {
         margin: 1em 0.5em 0 0.5em;
     }
 }
 
 /* Small devices (portrait tablets and large phones, 600px and up) */
-@media only screen and (min-width: 600px) {
+@media only screen and (min-width: 600px) and (max-width: 767px) {
     .card-nav {
         flex-direction: column
     }
 
-    main.responsive {
+    main {
         margin: 1em 1em 0 1em;
     }
 }
 
 /* Medium devices (landscape tablets, 768px and up) */
-@media only screen and (min-width: 768px) {
+@media only screen and (min-width: 768px) and (max-width: 991px) {
     .card-nav {
         flex-direction: column
+    }
+
+    main {
+        margin: 1em 2em 0 2em;
     }
 }
 
 /* Large devices (laptops/desktops, 992px and up) */
-@media only screen and (min-width: 992px) {
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
     .card-nav {
         flex-direction: column;
+    }
+
+    main {
+        margin: 1em 4em 0 4em;
     }
 }
 
 /* Extra large devices (large laptops and desktops, 1200px and up) */
-@media only screen and (min-width: 1200px) {
+@media only screen and (min-width: 1200px) and (max-width: 1920px) {
     .card-nav {
         flex-direction: row;
     }
 
-    main.responsive {
+    main {
         margin: 1em 8em 0 8em;
+    }
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1920px) {
+    .card-nav {
+        flex-direction: row;
+    }
+
+    main {
+        margin: 1em 16em 0 16em;
     }
 }

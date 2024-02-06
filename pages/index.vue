@@ -8,3 +8,9 @@
         </div>
     </main>
 </template>
+
+<script setup lang="ts">
+useHead({
+    title: 'Activiti Devtools'
+})
+</script>
