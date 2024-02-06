@@ -45,14 +45,15 @@ const sendFile = async () => {
     const formData = new FormData()
     formData.append('file', uploadFile.value)
     try {
-        await $fetch('/api/forms', {
+        const data = await $fetch('/api/forms', {
             method: 'post',
             body: formData
         })
+        forms.value.push(data)
     } catch (error) {
         console.log(error)
     }
-    await getForms();
+    // await getForms();
 }
 </script>
 

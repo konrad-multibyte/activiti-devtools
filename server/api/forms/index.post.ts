@@ -15,11 +15,13 @@ export default defineEventHandler(async (event) => {
                     const documentRef = doc(firestore, 'forms', id)
                     setDoc(documentRef, form)
                     const metadataRef = doc(firestore, 'forms-meta', id)
-                    setDoc(metadataRef, {
+                    const metadata = {
                         id,
                         name: form.name,
-                        description: form.description
-                    })
+                        description: form.description,
+                    }
+                    setDoc(metadataRef, metadata)
+                    return metadata;
                 } catch (error) {
                     console.log(error)
                 }
