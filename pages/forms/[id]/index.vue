@@ -113,14 +113,11 @@ const highlightField = (id: string) => {
     }
 }
 
-function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityCondition | null) {
+function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityCondition | null | undefined) {
     const conditions = []
-    let nextVisibilityCondition = null
-    if (nestedVisibilityCondition != null) {
-        do {
-            conditions.push(nestedVisibilityCondition)
-            nextVisibilityCondition = nestedVisibilityCondition?.nextCondition
-        } while (nextVisibilityCondition != null)
+    while (nestedVisibilityCondition !== null) {
+        conditions.push(nestedVisibilityCondition)
+        nestedVisibilityCondition = nestedVisibilityCondition?.nextCondition
     }
     return conditions
 }
@@ -176,9 +173,7 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                     <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
                                                     <div v-if="childField.visibilityCondition.nextCondition">
                                                         <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
-                                                            :key="condition?.leftFormFieldId">
-                            <pre><a :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}</pre>
-                                                    </pre>
+                                                            :key="condition?.leftFormFieldId"><a :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}</pre>
                                                     </div>
                                                 </div>
                                                 <div v-if="childField.type === 'configurable_table_input'">
