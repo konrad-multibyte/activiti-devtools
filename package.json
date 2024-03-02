@@ -10,12 +10,13 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "firebase-tools": "^13.1.0",
     "nuxt": "^3.10.0",
     "vue": "^3.4.15",
-    "vue-router": "^4.2.5",
-    "firebase-tools": "^13.1.0"
+    "vue-router": "^4.2.5"
   },
   "dependencies": {
+    "@nuxt/ui": "^2.14.1",
     "firebase": "^10.7.2",
     "firebase-functions": "^4.6.0"
   }

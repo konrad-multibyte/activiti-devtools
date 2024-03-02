@@ -53,6 +53,7 @@ onMounted(async () => {
                 title: `${form.value.name} - Activiti Devtools`
             }
         )
+        console.log(useConfluenceDisplay(form.value))
     })
 })
 

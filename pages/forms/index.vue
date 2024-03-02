@@ -23,6 +23,7 @@ const uploadFile = ref<File>({
         throw new Error('Function not implemented.');
     }
 })
+const isFormUploadModalOpen = ref(false)
 
 useHead({
     title: 'Forms - Activiti Devtools',
@@ -67,36 +68,46 @@ const sendFile = async () => {
     } catch (error) {
         console.log(error)
     }
-    // await getForms();
 }
 </script>
 
 <template>
-    <main>
-        <div class="form-upload">
-            <form action="" enctype="multipart/form-data" @submit.prevent="sendFile">
-                <div class="field">
-                    <label for="form">Upload form</label>
-                    <input id="form" ref="file" type="file" accept="application/json" name="file" required
-                        @change="selectFile">
-                </div>
-                <div class="field">
-                    <button type="submit" class="button button-primary">
+    <UModal v-model="isFormUploadModalOpen">
+        <UCard>
+            <template #header>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
                         Upload
-                    </button>
+                    </h3>
+                    <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1"
+                        @click="isFormUploadModalOpen = false" />
                 </div>
+            </template>
+            <form id="formUpload" enctype="multipart/form-data" @submit.prevent="sendFile">
+                <UFormGroup label="File">
+                    <UInput d="form" ref="file" type="file" accept="application/json" name="file" required
+                        @change="selectFile" />
+                </UFormGroup>
             </form>
-        </div>
-        <div class="form-menu">
-            <h1>Forms</h1>
-            <div class="card-nav">
-                <a v-for="form in forms" :key="form.id" class="card" :href="`/forms/${form.id}`">
-                    <h3>{{ form.name }}</h3>
-                    <p v-if="form.description == null || form.description == ''" class="italic">No description provided.</p>
-                    <p v-else class="italic">{{ form.description }}</p>
-                    <small>{{ form.id }}</small>
-                </a>
-            </div>
-        </div>
-    </main>
+            <template #footer>
+                <UInput type="submit" form="formUpload" model-value="Upload" @click="isFormUploadModalOpen = false" />
+            </template>
+        </UCard>
+    </UModal>
+    <UButton label="Upload form" @click="isFormUploadModalOpen = true" />
+    <div class="grid grid-cols-4 gap-5 sm:no-grid">
+        <UCard v-for="form in forms" :key="form.id" class="">
+            <template #header>
+                <h1 class="text-xl">
+                    {{ form.name }}
+                </h1>
+                <!-- <p class="text-sm">{{ form.id }}</p> -->
+            </template>
+            <p v-if="form.description == null || form.description == ''" class="italic">No description provided.</p>
+            <p v-else class="italic">{{ form.description }}</p>
+            <template #footer>
+                <ULink class="btn btn-primary" :to="`/forms/${form.id}`">Open</ULink>
+            </template>
+        </UCard>
+    </div>
 </template>

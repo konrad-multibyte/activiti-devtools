@@ -121,9 +121,9 @@ interface FormField {
     tab?: string,
     className?: string,
     params: {
-        existingColspan?: number,
+        existingColspan: number,
         maxColspan: number,
-        customProperties: object
+        customProperties?: object 
     },
     dateDisplayFormat?: string,
     layout: {
@@ -135,7 +135,7 @@ interface FormField {
     sizeY: number,
     row: number,
     col: number,
-    visibilityCondition: VisiblityCondition
+    visibilityCondition: VisiblityCondition | null
 }
 
 export interface FormMeta {
