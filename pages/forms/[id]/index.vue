@@ -207,11 +207,31 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                             {{ slideoverField.id }}
                         </p>
                     </template>
-                    <div class="p-4 flex-1">
-                        <div v-if="slideoverField.type === 'configurable_table_input'">
-                            <h4>Configurable Input Table</h4>
-                            <pre>{{ slideoverField.params.customProperties.tableItemsConfiguration }}</pre>
-                        </div>
+                    <div v-if="slideoverField.type === 'configurable_table_input'">
+                        <h1>Configurable Input Table</h1>
+                        <pre>{{ slideoverField.params.customProperties.tableItemsConfiguration }}</pre>
+                    </div>
+                    <div v-if="slideoverField.params.customProperties">
+                        <h1>Custom properties</h1>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="[key, value] in Object.entries(slideoverField.params.customProperties)">
+                                    <td>
+                                        {{ key }}
+                                    </td>
+                                    <td>
+                                        {{ value}}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- <UTable :rows="slideoverField.params.customProperties" /> -->
                     </div>
                 </UCard>
             </USlideover>
@@ -280,8 +300,8 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                                         </div>
                                                                     </div>
                                                                     <template #footer>
-                                                                        <UButton label="Open" @click="openFormControlSlideover(childField)" />
-                                                                        <UButton label="All properties" @click="openFormControlAllPropsSlideover(childField)" />
+                                                                        <UButton class="m-1" label="Open" @click="openFormControlSlideover(childField)" />
+                                                                        <UButton class="m-1" label="All properties" @click="openFormControlAllPropsSlideover(childField)" />
                                                                     </template>
                                                                 </UCard>
                                                             </div>
