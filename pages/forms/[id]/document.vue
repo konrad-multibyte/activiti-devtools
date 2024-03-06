@@ -2,11 +2,10 @@
 import { doc, onSnapshot } from 'firebase/firestore';
 import type { ConfigurableInputTableVisibilityCondition, Form, VisiblityCondition } from '~/types/index'
 
-
-
 const route = useRoute()
 const id = route.params.id as string
-
+const isMounted =  ref(false)
+const tables = ref([])
 const form = ref<Form>(
     {
         referenceId: '',
@@ -26,16 +25,22 @@ const form = ref<Form>(
         }
     }
 )
+const links = [
+    {
+        label: "Form",
+        to: `/forms/${id}`
+    }
+]
 
 useHead(
     {
         title: `Form - Activiti Devtools`,
         link: [
-        {
-            rel: 'preconnect',
-            href: 'https://firestore.googleapis.com'
-        }
-    ]
+            {
+                rel: 'preconnect',
+                href: 'https://firestore.googleapis.com'
+            }
+        ]
     }
 )
 
@@ -53,7 +58,44 @@ onMounted(async () => {
                 title: `${form.value.name} - Activiti Devtools`
             }
         )
-        console.log(useConfluenceDisplay(form.value))
+        for (const field of form.value.editorJson.fields) {
+            let table = {
+                name: '',
+                className: '',
+                rows: []
+            }
+            if (field.fieldType == 'ContainerRepresentation') {
+                if (field.type === 'group') {
+                    if (field.name) table.name = field.name    
+                } else if (field.type === 'container') {
+                    table.name = ''
+                } else {
+                    if (field.name) table.name = field.name
+                }
+                if (field.className) {
+                    table.className = field.className
+                } else {
+                    table.className = ''
+                }
+                for (const [index, value] of Object.entries(field.fields)) {
+                    for (const containerField of value) {
+                         table.rows.push({
+                            'Field Id': containerField.id,
+                            'Label': containerField.name,
+                            'PDF Label': '',
+                            'Placeholder': containerField.placeholder,
+                            'Form Component': capitalize(containerField.type.replaceAll('_', ' ').replaceAll('-', ' ')),
+                            'Options': unpackOptions(containerField.options),
+                            'Displayed?': '',
+                            'Required or optional?': containerField.required ? 'Required' : 'Optional',
+                            'Notes': ''
+                        })
+                    }
+                }
+            }
+            tables.value.push(table)
+        }
+        isMounted.value = true
     })
 })
 
@@ -90,6 +132,19 @@ function highlightField(id: string) {
     }
 }
 
+function unpackOptions(options) {
+// </td>
+//                                     <td v-if="containerField.options">
+//                                         <p v-for="option of containerField.options" :key="option.id">
+//                                             {{ option.name }}
+//                                         </p>
+//                                  </td>
+    if (options) {
+        return options.map((option) => option.name).join(' ')
+    }
+    return null
+}
+
 function transformCamelCase(text: string) {
     const result = text.replace(/([A-Z])/g, ' $1')
     return result.charAt(0).toUpperCase() + result.slice(1)
@@ -111,144 +166,22 @@ function configurableTableInputFieldVisibility(visibilityConditions: Configurabl
 </script>
 
 <template>
-    <main class="responsive">
-        <h1> {{ form.name }}</h1>
-        <div class="button-group-horizontal">
-            <a class="button button-primary" :href="`/forms/${id}`">
-                Form
-            </a>
+    <div class="form-header">
+        <h1 class="text-2xl">
+            {{ form.name }}
+        </h1>
+    </div>
+    <UHorizontalNavigation :links="links" />
+    <div v-if="isMounted" v-for="table of tables">
+        <div class="header">
+            <h1 class="text-xl">
+                {{ table.name }}
+            </h1>
+            <p>
+                {{ table.className }}
+            </p>
         </div>
-        <div v-if="form.editorJson">
-            <div v-for="field in form.editorJson.fields" :key="field.id" class="confluence">
-                <div v-if="field.fieldType === 'ContainerRepresentation'">
-                    <h3 v-if="field.name !== 'Label'">
-                        {{ field.name }}
-                    </h3>
-                    <table class="confluence">
-                        <thead>
-                            <tr>
-                                <th>Field ID</th>
-                                <th>Label</th>
-                                <th>PDF Label</th>
-                                <th>Placeholder</th>
-                                <th>Form component</th>
-                                <th>Options</th>
-                                <th>Displayed</th>
-                                <th>Required or optional?</th>
-                                <th>Pre-populated?</th>
-                                <th>Pre-populated from</th>
-                                <th>Editable (if pre-populated)</th>
-                                <th>Equivalent fields on other forms that will then be pre-populated</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template v-for="index in Object.keys(field.fields).length" :key="index">
-                                <template v-for="containerField in field.fields[index]" :key="containerField">
-                                    <tr :id="containerField.id">
-                                        <td>{{ containerField.id }}</td>
-                                        <td>
-                                            {{ containerField.name }}
-                                            <template v-if="containerField.value">
-                                                {{ containerField.value }}
-                                            </template>
-                                        </td>
-                                        <td />
-                                        <td>
-                                            {{ containerField.placeholder }}
-                                        </td>
-                                        <td>{{ capitalize(containerField.type.replaceAll('_', ' ').replaceAll('-', ' ')) }}
-                                        </td>
-                                        <td v-if="containerField.options">
-                                            <p v-for="option of containerField.options" :key="option.id">
-                                                {{ option.name }}
-                                            </p>
-                                        </td>
-                                        <td v-else />
-                                        <td
-                                            v-if="containerField.className === 'hidden-control' || field.className === 'hidden-control'">
-                                            Hidden
-                                        </td>
-                                        <td v-else-if="containerField.visibilityCondition !== null">
-                                            <p v-for="condition in unpackVisibilityConditions(containerField.visibilityCondition)"
-                                                :key="condition.leftFormFieldId">
-                                                If <a :href="`#${condition.leftFormFieldId}`"
-                                                    @click="highlightField(condition.leftFormFieldId)">{{
-                                                        condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}
-                                            </p>
-                                        </td>
-                                        <td v-else>
-                                            Always
-                                        </td>
-                                        <td v-if="containerField.required == true">
-                                            Required
-                                        </td>
-                                        <td v-else>
-                                            Optional
-                                        </td>
-                                        <td />
-                                        <td />
-                                        <td />
-                                        <td />
-                                        <td />
-                                    </tr>
-                                    <template v-if="containerField.type === 'configurable_table_input'">
-                                        <tr v-for="configurableTableInputField of JSON.parse(containerField.params.customProperties.tableItemsConfiguration).items"
-                                            :key="configurableTableInputField.id">
-                                            <td>(Table column)</td>
-                                            <td>{{ configurableTableInputField.label }}</td>
-                                            <td />
-                                            <td>{{ configurableTableInputField.placeholder }}</td>
-                                            <td>{{ transformCamelCase(configurableTableInputField.type) }}</td>
-                                            <td>
-                                                <template v-if="configurableTableInputField.type === 'buttonGroup'">
-                                                    <template
-                                                        v-for="option of configurableTableInputField.typeConfig.buttonControlItems.split('\n')"
-                                                        :key="option">
-                                                        <p>
-                                                            {{ option.split(',')[0] }}
-                                                        </p>
-                                                    </template>
-                                                </template>
-                                            </td>
-                                            <td>{{
-                                                configurableTableInputFieldVisibility(configurableTableInputField.visibilityCondition
-                                                    , configurableTableInputField.isHidden) }}</td>
-                                            <td>{{ configurableTableInputField.required ? 'Required' : 'Optional' }}</td>
-                                            <td />
-                                            <td />
-                                            <td />
-                                            <td />
-                                            <td />
-                                        </tr>
-                                    </template>
-                                </template>
-                            </template>
-                        </tbody>
-                    </table>
-                </div>
-                <div v-else>
-                    <table>
-                        <thead>
-                            <th>Field ID</th>
-                            <th>Label</th>
-                            <th>PDF Label</th>
-                            <th>Placeholder</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>{{ field.id }}</td>
-                                <td>{{ field.name }}</td>
-                                <td />
-                                <td>{{ field.placeholder }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        <div v-else>
-            <p>lol</p>
-        </div>
-    </main>
+        <UTable :rows="table.rows" />
+    </div>
+    <USkeleton v-else class="w-full" style="width: 100%" />
 </template>

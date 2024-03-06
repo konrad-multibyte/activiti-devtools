@@ -8,7 +8,7 @@ const links = [
 </script>
 
 <template>
-    <main class="space-y-4">
+    <main class="space-y-4 my-5">
         <UHorizontalNavigation :links="links" />
         <NuxtPage />
     </main>

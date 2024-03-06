@@ -1,12 +1,5 @@
 <template>
-    <main>
-        <h1>Actviti Devtools</h1>
-        <div class="card-nav">
-            <a class="card" href="/forms">
-                <h3>Forms</h3>
-            </a>
-        </div>
-    </main>
+    <h1 class="text-4xl">Activiti Development & Auditing Toolkit</h1>
 </template>
 
 <script setup lang="ts">
