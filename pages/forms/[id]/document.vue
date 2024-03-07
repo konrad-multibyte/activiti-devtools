@@ -81,14 +81,14 @@ onMounted(async () => {
                     for (const containerField of value) {
                          table.rows.push({
                             'Field Id': containerField.id,
-                            'Label': containerField.name,
+                            'Label': `${containerField.name ? containerField.name : '' }${containerField.displayText ? containerField.displayText : '' }`,
                             'PDF Label': '',
-                            'Placeholder': containerField.placeholder,
+                            'Placeholder': `${containerField.placeholder ? containerField.placeholder : containerField.value ? containerField.value : ''}`,
                             'Form Component': capitalize(containerField.type.replaceAll('_', ' ').replaceAll('-', ' ')),
                             'Options': unpackOptions(containerField.options),
-                            'Displayed?': '',
+                            'Displayed?': isFormControlDisplayed(containerField, field),
                             'Required or optional?': containerField.required ? 'Required' : 'Optional',
-                            'Notes': ''
+                            'Notes': displayNotes(containerField)
                         })
                     }
                 }
@@ -133,12 +133,6 @@ function highlightField(id: string) {
 }
 
 function unpackOptions(options) {
-// </td>
-//                                     <td v-if="containerField.options">
-//                                         <p v-for="option of containerField.options" :key="option.id">
-//                                             {{ option.name }}
-//                                         </p>
-//                                  </td>
     if (options) {
         return options.map((option) => option.name).join(' ')
     }
@@ -150,19 +144,59 @@ function transformCamelCase(text: string) {
     return result.charAt(0).toUpperCase() + result.slice(1)
 }
 
-function configurableTableInputFieldVisibility(visibilityConditions: ConfigurableInputTableVisibilityCondition[] | null | undefined, isHidden: boolean | null | undefined) {
+function configurableTableInputFieldVisibility(visibilityConditions: ConfigurableInputTableVisibilityCondition[] | null | undefined, parentClassName: string, isHidden: boolean | null | undefined) {
     const conditions = []
     if (visibilityConditions != null) {
         for (const condition of visibilityConditions) {
-            conditions.push(`${condition.controlId}${condition.processVariable}${condition.tableControlId} ${condition.operand}${condition.condition} ${condition.value}`)
+            conditions.push(`${condition.controlId}${condition.processVariable}${condition.tableControlId} ${condition.operand}${condition.condition} ${condition.value} ${condition.nextConditionOperator ? `\n${condition.nextConditionOperator}`: ''}`)
         }
         return conditions.join('\n')
-    } else if (isHidden != null) {
-        return isHidden ? 'Hidden' : 'Always'
+    } else if (isHidden) {
+        return 'Hidden'
+    } else if (parentClassName === 'hidden-control') {
+        return 'Hidden'
     } else {
         return 'Always'
     }
 }
+
+function isFormControlDisplayed(formControl, parent) {
+    if (formControl.visibilityCondition) {
+        const conditions = []
+        for (const condition of unpackVisibilityConditions(formControl.visibilityCondition)) {
+            conditions.push(`If ${condition?.leftFormFieldId}${condition?.leftRestResponseId} ${condition?.operator} ${condition?.rightFormFieldId}${condition?.rightRestResponseId}${condition?.rightType ? condition.rightType : ''}${condition?.rightValue} ${condition?.nextCondition ? `\n${condition.nextCondition}`: ''}`)
+        }
+        return conditions.join('\n')
+    } else if (parent.className && parent.className.includes('hidden-control')) {
+        return 'Hidden'
+    } else if (formControl.className && formControl.className.includes('hidden-control')) {
+        return 'Hidden'
+    }
+    return 'Always'
+}
+
+function displayNotes(formControl) {
+    if (formControl.params.customProperties || formControl.hyperlinkUrl) {
+        const props = []
+        if (formControl.params.customProperties) {
+            for (const [key, value] of Object.entries(formControl.params.customProperties)) {
+                props.push(`${key}: ${value}\n`)
+            }
+        }
+        if (formControl.hyperlinkUrl) {
+            if (props.length > 0) {
+                props.push(formControl.hyperlinkUrl) 
+            } else {
+                return formControl.hyperlinkUrl
+            }
+        }
+        if (props.length > 0 && props.join(' ').length < 280) {
+            return props.join(' ')
+        }
+    }
+    return ''
+}
+
 </script>
 
 <template>
