@@ -82,7 +82,6 @@ onMounted(async () => {
                          table.rows.push({
                             'Field Id': containerField.id,
                             'Label': `${containerField.name ? containerField.name : '' }${containerField.displayText ? containerField.displayText : '' }`,
-                            'PDF Label': '',
                             'Placeholder': `${containerField.placeholder ? containerField.placeholder : containerField.value ? containerField.value : ''}`,
                             'Form Component': capitalize(containerField.type.replaceAll('_', ' ').replaceAll('-', ' ')),
                             'Options': unpackOptions(containerField.options),
@@ -134,7 +133,7 @@ function highlightField(id: string) {
 
 function unpackOptions(options) {
     if (options) {
-        return options.map((option) => option.name).join(' ')
+        return options.map((option) => option.name).join(' | ')
     }
     return null
 }
@@ -164,7 +163,7 @@ function isFormControlDisplayed(formControl, parent) {
     if (formControl.visibilityCondition) {
         const conditions = []
         for (const condition of unpackVisibilityConditions(formControl.visibilityCondition)) {
-            conditions.push(`If ${condition?.leftFormFieldId}${condition?.leftRestResponseId} ${condition?.operator} ${condition?.rightFormFieldId}${condition?.rightRestResponseId}${condition?.rightType ? condition.rightType : ''}${condition?.rightValue} ${condition?.nextCondition ? `\n${condition.nextCondition}`: ''}`)
+            conditions.push(`If ${condition?.leftFormFieldId}${condition?.leftRestResponseId ? condition?.leftRestResponseId : ''} ${condition?.operator} ${condition?.rightFormFieldId}${condition?.rightRestResponseId}${condition?.rightType ? condition.rightType : ''}${condition?.rightValue}${condition?.nextConditionOperator ?  ` ${condition.nextConditionOperator.toUpperCase()} ` : ''}`)
         }
         return conditions.join('\n')
     } else if (parent.className && parent.className.includes('hidden-control')) {
