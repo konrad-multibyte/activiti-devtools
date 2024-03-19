@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { doc, onSnapshot, deleteDoc } from "firebase/firestore"
+import { doc, onSnapshot, deleteDoc, updateDoc } from "firebase/firestore"
 import type { Form, FormField, VisiblityCondition } from "~/types/index.d.js"
+import { object, string, type InferType } from 'yup' 
+import type { FormSubmitEvent } from '#ui/types'
 
 useHead({
     title: `Form - Activiti Devtools`,
@@ -15,6 +17,7 @@ useHead({
         }
     ]
 })
+const isFlagModalDisplayed = ref(false)
 const isMounted = ref(false)
 const route = useRoute()
 const id = route.params.id as string
@@ -174,6 +177,23 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
     return conditions
 }
 
+const schema = object({
+    flagDescription: string()
+})
+
+type Schema = InferType<typeof schema>
+
+const state = reactive({
+  flagDescription: undefined
+})
+
+async function flagFormSubmit (event: FormSubmitEvent<Schema>) {
+  // Do something with event.data
+  console.log(event.data)
+  const { firestore } = useFirebase()
+  updateDoc(doc(firestore, flags, ''), '', '')
+}
+
 </script>
 
 <template>
@@ -256,6 +276,26 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                     {{ tab.title }}
                 </div>
             </div> -->
+            <UModal v-model="isFlagModalDisplayed">
+                <UCard>
+                    <template #header>
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-white">
+                                Modal
+                            </h3>
+                            <UButton color="gray" variant="ghost" icon="i-heroicons-x-mark-20-solid" class="-my-1" @click="isFlagModalDisplayed = false" />
+                        </div>
+                    </template>
+                    <UForm id="flagForm" :schema="schema" :state="state" @submit="flagFormSubmit">
+                        <UFormGroup label="Description" name="flagDescription" required>
+                            <UTextarea v-model="state.flagDescription" color="primary" variant="outline" placeholder="Description..." />
+                        </UFormGroup>
+                    </UForm>
+                    <template #footer>
+                        <UInput type="submit" form="flagForm" value="Submit" />
+                    </template>
+                </UCard>
+            </UModal>
             <template v-if="isMounted">
                 <div v-if="form.editorJson.tabs?.length > 0">
                     <UTabs :items="tabs">
@@ -275,23 +315,25 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                                 <UCard v-for="childField of childFieldCollection" :id="childField.id"
                                                                     :key="childField.id" class="mt-3">
                                                                     <template #header>
-                                                                        <h4 class="text-xl">
-                                                                            {{ childField.name == '' ? 'No label' : childField.name }}
-                                                                        </h4>
+                                                                        <div class="inline">
+                                                                            <h1 class="text-xl">
+                                                                                {{ childField.name == '' ? 'No label' : childField.name }}
+                                                                            </h1>
+                                                                            <UTooltip text="Flag this control">
+                                                                                <UIcon name="i-heroicons-flag" @click="isFlagModalDisplayed = true"/>
+                                                                            </UTooltip>
+                                                                        </div>
                                                                         <p>
                                                                             {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('- ', ' ')) }} ({{ childField.type }})
                                                                         </p>
                                                                         <!-- TODO: Implement flagging  -->
-                                                                        <!-- <UTooltip text="Flag this control">
-                                                                            <UIcon name="i-heroicons-flag" @click=""/>
-                                                                        </UTooltip> -->
                                                                     </template>
                                                                     <p>
                                                                         ID: {{ childField.id }}
                                                                     </p>
                                                                     <div v-show="expandedFields.includes(childField.id)">
                                                                         <div v-if="childField.visibilityCondition !== null">
-                                                                            <h4>Visibility Condition</h4>
+                                                                            <h1>Visibility Condition</h1>
                                                                             <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
                                                                             <div v-if="childField.visibilityCondition.nextCondition">
                                                                                 <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
@@ -329,23 +371,24 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                             <UCard v-for="childField of childFieldCollection" :id="childField.id"
                                                                 :key="childField.id" class="mt-3">
                                                                 <template #header>
-                                                                    <h4 class="text-xl">
-                                                                        {{ childField.name == '' ? 'No label' : childField.name }}
-                                                                    </h4>
+                                                                    <div class="flex">
+                                                                        <h1 class="text-xl">
+                                                                            {{ childField.name == '' ? 'No label' : childField.name }}
+                                                                            <UTooltip text="Flag this control">
+                                                                                <UIcon name="i-heroicons-flag" @click="isFlagModalDisplayed = true"/>
+                                                                            </UTooltip>
+                                                                        </h1>
+                                                                    </div>
                                                                     <p>
                                                                         {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('- ', ' ')) }} ({{ childField.type }})
                                                                     </p>
-                                                                    <!-- TODO: Implement flagging  -->
-                                                                    <!-- <UTooltip text="Flag this control">
-                                                                        <UIcon name="i-heroicons-flag" @click=""/>
-                                                                    </UTooltip> -->
                                                                 </template>
                                                                 <p>
                                                                     ID: {{ childField.id }}
                                                                 </p>
                                                                 <div v-show="expandedFields.includes(childField.id)">
                                                                     <div v-if="childField.visibilityCondition !== null">
-                                                                        <h4>Visibility Condition</h4>
+                                                                        <h1>Visibility Condition</h1>
                                                                         <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
                                                                         <div v-if="childField.visibilityCondition.nextCondition">
                                                                             <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
@@ -387,9 +430,9 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                 :key="childField.id" class="card">
                                                 <img class="button-expand" src="~/assets/svg/arrowdown.svg" alt="Expand button"
                                                     :data-field-id="`${childField.id}`" @click="expandField">
-                                                <h4 class="header">
+                                                <h1 class="header">
                                                     {{ childField.name == '' ? 'No label' : childField.name }}
-                                                </h4>
+                                                </h1>
                                                 <p>
                                                     ID: {{ childField.id }}
                                                 </p>
@@ -399,7 +442,7 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                 </p>
                                                 <div v-show="expandedFields.includes(childField.id)">
                                                     <div v-if="childField.visibilityCondition !== null">
-                                                        <h4>Visibility Condition</h4>
+                                                        <h1>Visibility Condition</h1>
                                                         <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
                                                         <div v-if="childField.visibilityCondition.nextCondition">
                                                             <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
@@ -407,10 +450,10 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                         </div>
                                                     </div>
                                                     <div v-if="childField.type === 'configurable_table_input'">
-                                                        <h4>Configurable Input Table</h4>
+                                                        <h1>Configurable Input Table</h1>
                                                         <pre>{{ childField.params.customProperties.tableItemsConfiguration }}</pre>
                                                     </div>
-                                                    <h4>All properties</h4>
+                                                    <h1>All properties</h1>
                                                     <pre wrap="true">
     {{ childField }}
                                                     </pre>
@@ -423,7 +466,7 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                         </div>
                     </div>
                     <div v-else>
-                        <h4>{{ field.name }}</h4>
+                        <h1>{{ field.name }}</h1>
                         <p>class: {{ field.className }}</p>
                         <div v-if="field.fieldType === 'ContainerRepresentation'">
                             <div v-for="childFieldCollection of field.fields" :key="childFieldCollection">
@@ -443,7 +486,7 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                         </p>
                                         <div v-show="expandedFields.includes(childField.id)">
                                             <div v-if="childField.visibilityCondition !== null">
-                                                <h4>Visibility Condition</h4>
+                                                <h1>Visibility Condition</h1>
                                                 <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
                                                 <div v-if="childField.visibilityCondition.nextCondition">
                                                     <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
@@ -453,10 +496,10 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
                                                 </div>
                                             </div>
                                             <div v-if="childField.type === 'configurable_table_input'">
-                                                <h4>Configurable Input Table</h4>
+                                                <h1>Configurable Input Table</h1>
                                                 <pre>{{ childField.params.customProperties.tableItemsConfiguration }}</pre>
                                             </div>
-                                            <h4>All properties</h4>
+                                            <h1>All properties</h1>
                                             <pre>
     {{ childField }}
                                             </pre>
