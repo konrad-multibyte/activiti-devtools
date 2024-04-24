@@ -64,6 +64,7 @@ const sendFile = async () => {
             method: 'post',
             body: formData
         })
+        console.log(formData);
         forms.value.push(data)
     } catch (error) {
         console.log(error)

@@ -3,7 +3,11 @@ const links = [
     {
         label: "Forms",
         to: "/forms"
-    }
+    },
+    {
+        label: 'Processes',
+        to: '/process'
+    },
 ]
 </script>
 
