@@ -3,6 +3,8 @@ import { collection, getDocs } from 'firebase/firestore'
 import { useFirebase } from '~/composables/useFirebase'
 import type { FormMeta } from '~/types';
 
+const toast = useToast()
+
 const forms = ref<FormMeta[]>([])
 const uploadFile = ref<File>({
     lastModified: 0,
@@ -49,25 +51,45 @@ onMounted(async () => {
     await getForms();
 })
 
-const selectFile = (payload: Event) => {
-    const target = payload.target as HTMLInputElement
-    if (target.files != null) {
-        uploadFile.value = target.files[0] as File
+const selectFile = (payload: FileList) => {
+    if (payload.length > 0) {
+        uploadFile.value = payload[0]
     }
 }
 
 const sendFile = async () => {
     const formData = new FormData()
     formData.append('file', uploadFile.value)
-    try {
-        const data = await $fetch('/api/forms', {
-            method: 'post',
-            body: formData
+    $fetch('/api/forms', {
+        method: 'post',
+        body: formData
+    }).then((data) => {
+        if (data != null) {
+            forms.value.push(data)
+            toast.add({
+                id: 'form_upload_success',
+                title: 'Form uploaded',
+                description: `${data.name} is uploaded.`,
+                icon: 'i-heroicons-cloud-arrow-up',
+                timeout: 5000,
+                actions: [{
+                    label: 'View',
+                    click: async () => {
+                        await navigateTo(`/forms/${data?.id}`)
+                    }
+                }]
+            })
+        }
+    }).catch((error) => {
+        console.error(error)
+        toast.add({
+            id: 'form_upload_fail',
+            title: 'Form upload fail',
+            description: `This form could not be uploaded.`,
+            icon: 'i-heroicons-exclamation-triangle',
+            timeout: 5000
         })
-        forms.value.push(data)
-    } catch (error) {
-        console.log(error)
-    }
+    })
 }
 </script>
 
@@ -101,7 +123,6 @@ const sendFile = async () => {
                 <h1 class="text-xl">
                     {{ form.name }}
                 </h1>
-                <!-- <p class="text-sm">{{ form.id }}</p> -->
             </template>
             <p v-if="form.description == null || form.description == ''" class="italic">No description provided.</p>
             <p v-else class="italic">{{ form.description }}</p>
