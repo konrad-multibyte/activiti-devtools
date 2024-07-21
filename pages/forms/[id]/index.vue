@@ -177,295 +177,204 @@ function unpackVisibilityConditions(nestedVisibilityCondition: VisiblityConditio
 </script>
 
 <template>
-        <div class="header">
-            <h1 v-if="isMounted" class="text-2xl">{{ form.name }}</h1>
-            <USkeleton v-else class="h-[30px] w-[500px]" />
-            <div v-if="form.description" class="text-md">
-                {{ form.description }}
-            </div>
-            <div v-if="isMounted" class="text-md italic">
-                No description provided.
-            </div>
-            <USkeleton v-else class="h-[24px] w-[350px]" />
-        </div>
-        <UHorizontalNavigation :links="links" />
+    <UPageHeader v-if="form" headline="Form" :title="form.name" :description="form.description" />
+    <UHorizontalNavigation :links="links" />
+    <UCard>
+        <template #header>
+            <h1>Form controls</h1>
+        </template>
+        <UButton color="red" @click="removeForm">
+            Delete
+        </UButton>
+    </UCard>
+    <USlideover v-model="isFormControlOpen">
         <UCard>
             <template #header>
-                <h1>Form controls</h1>
+                <h1 class="text-xl">
+                    {{ slideoverField.name }}
+                </h1>
+                <p>
+                    {{ slideoverField.id }}
+                </p>
             </template>
-            <UButton color="red" @click="removeForm">
-                    Delete
-            </UButton>
-            </UCard>
-            <USlideover v-model="isFormControlOpen">
-                <UCard>
-                    <template #header>
-                        <h1 class="text-xl">
-                            {{ slideoverField.name }}
-                        </h1>
-                        <p>
-                            {{ slideoverField.id }}
-                        </p>
-                    </template>
-                    <div v-if="slideoverField.type === 'configurable_table_input'">
-                        <h1>Configurable Input Table</h1>
-                        <pre>{{ slideoverField.params.customProperties.tableItemsConfiguration }}</pre>
-                    </div>
-                    <div v-if="slideoverField.params.customProperties">
-                        <h1>Custom properties</h1>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="[key, value] in Object.entries(slideoverField.params.customProperties)">
-                                    <td>
-                                        {{ key }}
-                                    </td>
-                                    <td>
-                                        {{ value}}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <!-- <UTable :rows="slideoverField.params.customProperties" /> -->
-                    </div>
-                </UCard>
-            </USlideover>
-            <USlideover v-model="isFormControlAllPropsOpen">
-                <UCard>
-                    <template #header>
-                        <h1 class="text-xl">
-                            {{ slideoverField.name }}
-                        </h1>
-                        <p>
-                            {{  slideoverField.id }}
-                        </p>
-                    </template>
-                    <pre wrap="true">
-    {{ slideoverField }}
-                    </pre>
-                </UCard>
-            </USlideover>
-            <!-- <div v-if="form.editorJson?.tabs" class="tabs">
-                <div v-for="(tab, index) in form.editorJson.tabs" :class="`tab ${index === 0 ? 'active' : ''}`"
-                    :data-tab-id="tab.id" @click="selectTab">
-                    {{ tab.title }}
-                </div>
-            </div> -->
-            <template v-if="isMounted">
-                <div v-if="form.editorJson.tabs?.length > 0">
-                    <UTabs :items="tabs">
-                        <template #item="{ item }">
-                                <div v-for="field of form.editorJson.fields" :key="field.id">
-                                    <div v-if="field.tab">
-                                        <div v-if="field.tab === item.key">
-                                            <UCard class="mt-3">
-                                                <template v-if="field.type != 'container'" #header>
-                                                    <h2 class="text-2xl">{{ field.name }}</h2>
-                                                    <p v-if="!!field.className">class: {{ field.className }}</p>
-                                                </template>
-                                                <div v-if="field.fieldType === 'ContainerRepresentation'">
-                                                    <div v-for="childFieldCollection of field.fields" :key="childFieldCollection.id">
-                                                        <div v-if="childFieldCollection.length > 0">
-                                                            <div class="card-stack">
-                                                                <UCard v-for="childField of childFieldCollection" :id="childField.id"
-                                                                    :key="childField.id" class="mt-3">
-                                                                    <template #header>
-                                                                        <h4 class="text-xl">
-                                                                            {{ childField.name == '' ? 'No label' : childField.name }}
-                                                                        </h4>
-                                                                        <p>
-                                                                            {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('- ', ' ')) }} ({{ childField.type }})
-                                                                        </p>
-                                                                        <!-- TODO: Implement flagging  -->
-                                                                        <!-- <UTooltip text="Flag this control">
+            <div v-if="slideoverField.type === 'configurable_table_input'">
+                <h1>Configurable Input Table</h1>
+                <pre>{{ slideoverField.params.customProperties.tableItemsConfiguration }}</pre>
+            </div>
+            <div v-if="slideoverField.params.customProperties">
+                <h1>Custom properties</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="[key, value] in Object.entries(slideoverField.params.customProperties)">
+                            <td>
+                                {{ key }}
+                            </td>
+                            <td>
+                                {{ value }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </UCard>
+    </USlideover>
+    <USlideover v-model="isFormControlAllPropsOpen">
+        <UCard>
+            <template #header>
+                <h1 class="text-xl">
+                    {{ slideoverField.name }}
+                </h1>
+                <p>
+                    {{ slideoverField.id }}
+                </p>
+            </template>
+            <pre wrap="true">
+            {{ slideoverField }}
+        </pre>
+        </UCard>
+    </USlideover>
+    <template v-if="isMounted">
+        <div v-if="form.editorJson.tabs?.length > 0">
+            <UTabs :items="tabs">
+                <template #item="{ item }">
+                    <div v-for="field of form.editorJson.fields" :key="field.id">
+                        <div v-if="field.tab">
+                            <div v-if="field.tab === item.key">
+                                <UCard class="mt-3">
+                                    <template v-if="field.type != 'container'" #header>
+                                        <h2 class="text-2xl">{{ field.name }}</h2>
+                                        <p v-if="!!field.className">class: {{ field.className }}</p>
+                                    </template>
+                                    <div v-if="field.fieldType === 'ContainerRepresentation'">
+                                        <div v-for="childFieldCollection of field.fields"
+                                            :key="childFieldCollection.id">
+                                            <div v-if="childFieldCollection.length > 0">
+                                                <div class="card-stack">
+                                                    <UCard v-for="childField of childFieldCollection"
+                                                        :id="childField.id" :key="childField.id" class="mt-3">
+                                                        <template #header>
+                                                            <h4 class="text-xl">
+                                                                {{ childField.name == '' ? 'No label' : childField.name
+                                                                }}
+                                                            </h4>
+                                                            <p>
+                                                                {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('- ', ' ')) }} ({{ childField.type }})
+                                                            </p>
+                                                            <!-- TODO: Implement flagging  -->
+                                                            <!-- <UTooltip text="Flag this control">
                                                                             <UIcon name="i-heroicons-flag" @click=""/>
                                                                         </UTooltip> -->
-                                                                    </template>
-                                                                    <p>
-                                                                        ID: {{ childField.id }}
-                                                                    </p>
-                                                                    <div v-show="expandedFields.includes(childField.id)">
-                                                                        <div v-if="childField.visibilityCondition !== null">
-                                                                            <h4>Visibility Condition</h4>
-                                                                            <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
-                                                                            <div v-if="childField.visibilityCondition.nextCondition">
-                                                                                <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
-                                                                                    :key="condition?.leftFormFieldId"><a :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}</pre>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <template #footer>
-                                                                        <UButton class="m-1" label="Open" @click="openFormControlSlideover(childField)" />
-                                                                        <UButton class="m-1" label="All properties" @click="openFormControlAllPropsSlideover(childField)" />
-                                                                    </template>
-                                                                </UCard>
+                                                        </template>
+                                                        <p>
+                                                            ID: {{ childField.id }}
+                                                        </p>
+                                                        <div v-show="expandedFields.includes(childField.id)">
+                                                            <div v-if="childField.visibilityCondition !== null">
+                                                                <h4>Visibility Condition</h4>
+                                                                <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`"
+                                    @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{
+                                        childField.visibilityCondition.leftFormFieldId }}</a> {{
+                                        childField.visibilityCondition.operator }} {{
+                                    childField.visibilityCondition.rightRestResponseId }}{{
+                                    childField.visibilityCondition.rightValue }}{{
+                                    childField.visibilityCondition.rightFormFieldId }}</pre>
+                                                                <div
+                                                                    v-if="childField.visibilityCondition.nextCondition">
+                                                                    <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
+                                                                        :key="condition?.leftFormFieldId"><a :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}</pre>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                            </UCard>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                    </UTabs>
-                </div>
-                <div v-else>
-                    <div v-for="field of form.editorJson.fields" :key="field.id">
-                                        <UCard class="mt-3">
-                                            <template v-if="field.type != 'container'" #header>
-                                                <h2 class="text-2xl">{{ field.name }}</h2>
-                                                <p v-if="!!field.className">class: {{ field.className }}</p>
-                                            </template>
-                                            <div v-if="field.fieldType === 'ContainerRepresentation'">
-                                                <div v-for="childFieldCollection of field.fields" :key="childFieldCollection.id">
-                                                    <div v-if="childFieldCollection.length > 0">
-                                                        <div class="card-stack">
-                                                            <UCard v-for="childField of childFieldCollection" :id="childField.id"
-                                                                :key="childField.id" class="mt-3">
-                                                                <template #header>
-                                                                    <h4 class="text-xl">
-                                                                        {{ childField.name == '' ? 'No label' : childField.name }}
-                                                                    </h4>
-                                                                    <p>
-                                                                        {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('- ', ' ')) }} ({{ childField.type }})
-                                                                    </p>
-                                                                    <!-- TODO: Implement flagging  -->
-                                                                    <!-- <UTooltip text="Flag this control">
-                                                                        <UIcon name="i-heroicons-flag" @click=""/>
-                                                                    </UTooltip> -->
-                                                                </template>
-                                                                <p>
-                                                                    ID: {{ childField.id }}
-                                                                </p>
-                                                                <div v-show="expandedFields.includes(childField.id)">
-                                                                    <div v-if="childField.visibilityCondition !== null">
-                                                                        <h4>Visibility Condition</h4>
-                                                                        <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
-                                                                        <div v-if="childField.visibilityCondition.nextCondition">
-                                                                            <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
-                                                                                :key="condition?.leftFormFieldId"><a :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}</pre>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <template #footer>
-                                                                    <div class="space-x-4">
-                                                                        <UButton label="Open" @click="openFormControlSlideover(childField)" />
-                                                                        <UButton label="All properties" @click="openFormControlAllPropsSlideover(childField)" />
-                                                                    </div>
-                                                                </template>
-                                                            </UCard>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </UCard>
-                                <div v-if="field.tab">
-                                    <div v-if="field.tab === item.key">
-                                    </div>
-                                </div>
-                            </div>
-                </div>
-            </template>
-            <USkeleton v-else class="w-full md:w-auto" />
-            <!-- <div class="form-preview-representation">
-                <div v-for="field of form.editorJson.fields" :key="field.id">
-                    <div v-if="field.tab">
-                        <div v-if="field.tab === selectedTab">
-                            <h3>{{ field.name }}</h3>
-                            <p>class: {{ field.className }}</p>
-                            <div v-if="field.type === 'group'">
-                                <div v-for="childFieldCollection of field.fields" :key="childFieldCollection.id">
-                                    <div v-if="childFieldCollection.length > 0">
-                                        <div class="card-stack">
-                                            <div v-for="childField of childFieldCollection" :id="childField.id"
-                                                :key="childField.id" class="card">
-                                                <img class="button-expand" src="~/assets/svg/arrowdown.svg" alt="Expand button"
-                                                    :data-field-id="`${childField.id}`" @click="expandField">
-                                                <h4 class="header">
-                                                    {{ childField.name == '' ? 'No label' : childField.name }}
-                                                </h4>
-                                                <p>
-                                                    ID: {{ childField.id }}
-                                                </p>
-                                                <p>
-                                                    Type: {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('-',
-                                                    ' ')) }} ({{ childField.type }})
-                                                </p>
-                                                <div v-show="expandedFields.includes(childField.id)">
-                                                    <div v-if="childField.visibilityCondition !== null">
-                                                        <h4>Visibility Condition</h4>
-                                                        <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
-                                                        <div v-if="childField.visibilityCondition.nextCondition">
-                                                            <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
-                                                                :key="condition?.leftFormFieldId"><a :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}</pre>
-                                                        </div>
-                                                    </div>
-                                                    <div v-if="childField.type === 'configurable_table_input'">
-                                                        <h4>Configurable Input Table</h4>
-                                                        <pre>{{ childField.params.customProperties.tableItemsConfiguration }}</pre>
-                                                    </div>
-                                                    <h4>All properties</h4>
-                                                    <pre wrap="true">
-    {{ childField }}
-                                                    </pre>
+                                                        <template #footer>
+                                                            <UButton class="m-1" label="Open"
+                                                                @click="openFormControlSlideover(childField)" />
+                                                            <UButton class="m-1" label="All properties"
+                                                                @click="openFormControlAllPropsSlideover(childField)" />
+                                                        </template>
+                                                    </UCard>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </UCard>
                             </div>
                         </div>
                     </div>
-                    <div v-else>
-                        <h4>{{ field.name }}</h4>
-                        <p>class: {{ field.className }}</p>
-                        <div v-if="field.fieldType === 'ContainerRepresentation'">
-                            <div v-for="childFieldCollection of field.fields" :key="childFieldCollection">
-                                <div v-if="childFieldCollection.length > 0" class="card-stack">
-                                    <div v-for="childField of childFieldCollection" :key="childField" class="card">
-                                        <img class="button-expand" src="~/assets/svg/arrowdown.svg" alt="Expand button"
-                                            :data-field-id="`${childField.id}`" @click="expandField">
-                                        <p class="header">
-                                            {{ childField.name == '' ? 'No label' : childField.name }}
-                                        </p>
+                </template>
+            </UTabs>
+        </div>
+        <div v-else>
+            <div v-for="field of form.editorJson.fields" :key="field.id">
+                <UCard class="mt-3">
+                    <template v-if="field.type != 'container'" #header>
+                        <h2 class="text-2xl">{{ field.name }}</h2>
+                        <p v-if="!!field.className">class: {{ field.className }}</p>
+                    </template>
+                    <div v-if="field.fieldType === 'ContainerRepresentation'">
+                        <div v-for="childFieldCollection of field.fields" :key="childFieldCollection.id">
+                            <div v-if="childFieldCollection.length > 0">
+                                <div class="card-stack">
+                                    <UCard v-for="childField of childFieldCollection" :id="childField.id"
+                                        :key="childField.id" class="mt-3">
+                                        <template #header>
+                                            <h4 class="text-xl">
+                                                {{ childField.name == '' ? 'No label' : childField.name }}
+                                            </h4>
+                                            <p>
+                                                {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('- ', ' ')) }} ({{ childField.type }})
+                                            </p>
+                                            <!-- TODO: Implement flagging  -->
+                                            <!-- <UTooltip text="Flag this control">
+                                                                        <UIcon name="i-heroicons-flag" @click=""/>
+                                                                    </UTooltip> -->
+                                        </template>
                                         <p>
                                             ID: {{ childField.id }}
-                                        </p>
-                                        <p>
-                                            Type: {{ capitalize(childField.type.replaceAll('_', ' ').replaceAll('-', ' ')) }}
-                                            ({{ childField.type }})
                                         </p>
                                         <div v-show="expandedFields.includes(childField.id)">
                                             <div v-if="childField.visibilityCondition !== null">
                                                 <h4>Visibility Condition</h4>
-                                                <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`" @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{ childField.visibilityCondition.leftFormFieldId }}</a> {{ childField.visibilityCondition.operator }} {{ childField.visibilityCondition.rightRestResponseId }}{{ childField.visibilityCondition.rightValue }}{{ childField.visibilityCondition.rightFormFieldId }}</pre>
+                                                <pre><a :href="`#${childField.visibilityCondition.leftFormFieldId}`"
+                                                @click="highlightField(childField.visibilityCondition.leftFormFieldId)">{{
+                                                childField.visibilityCondition.leftFormFieldId }}</a> {{
+                                            childField.visibilityCondition.operator }} {{
+                                                childField.visibilityCondition.rightRestResponseId }}{{
+                                            childField.visibilityCondition.rightValue }}{{
+                                                childField.visibilityCondition.rightFormFieldId }}</pre>
                                                 <div v-if="childField.visibilityCondition.nextCondition">
                                                     <pre v-for="condition in unpackVisibilityConditions(childField.visibilityCondition.nextCondition)"
-                                                        :key="condition?.leftFormFieldId">
-                                <pre><a :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId }}</a> {{ condition.operator }} {{ condition.rightValue }}{{ condition.rightFormFieldId }}</pre>
-                                                </pre>
+                                                        :key="condition?.leftFormFieldId"><a
+                                                    :href="`#${condition.leftFormFieldId}`">{{ condition.leftFormFieldId
+                                                    }}</a> {{ condition.operator }} {{ condition.rightValue }}{{
+                                                condition.rightFormFieldId }}</pre>
                                                 </div>
                                             </div>
-                                            <div v-if="childField.type === 'configurable_table_input'">
-                                                <h4>Configurable Input Table</h4>
-                                                <pre>{{ childField.params.customProperties.tableItemsConfiguration }}</pre>
-                                            </div>
-                                            <h4>All properties</h4>
-                                            <pre>
-    {{ childField }}
-                                            </pre>
                                         </div>
-                                    </div>
+                                        <template #footer>
+                                            <div class="space-x-4">
+                                                <UButton label="Open" @click="openFormControlSlideover(childField)" />
+                                                <UButton label="All properties"
+                                                    @click="openFormControlAllPropsSlideover(childField)" />
+                                            </div>
+                                        </template>
+                                    </UCard>
                                 </div>
                             </div>
                         </div>
                     </div>
+                </UCard>
+                <div v-if="field.tab">
+                    <div v-if="field.tab === item.key">
+                    </div>
                 </div>
-            </div> -->
+            </div>
+        </div>
+    </template>
+    <USkeleton v-else class="w-full md:w-auto" />
 </template>
