@@ -15,6 +15,16 @@
 
 <script setup lang="ts">
 useHead({
+    link: [
+        {
+            rel: 'dns-prefetch',
+            href: 'https://firestore.googleapis.com'
+        },
+        {
+            rel: 'preconnect',
+            href: 'https://firestore.googleapis.com'
+        }
+    ],
     title: 'Activiti Devtools'
 })
 const modules = [

@@ -25,3 +25,4 @@ logs
 
 # Firebase
 hosting.*.cache
+service-account.json

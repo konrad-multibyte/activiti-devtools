@@ -1,31 +1,13 @@
 <script setup lang="ts">
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, query, onSnapshot } from 'firebase/firestore'
 import { useFirebase } from '~/composables/useFirebase'
 import type { FormMeta } from '~/types';
 
 const toast = useToast()
 
 const forms = ref<FormMeta[]>([])
-const uploadFile = ref<File>({
-    lastModified: 0,
-    name: '',
-    webkitRelativePath: '',
-    size: 0,
-    type: '',
-    arrayBuffer: function (): Promise<ArrayBuffer> {
-        throw new Error('Function not implemented.');
-    },
-    slice: function (start?: number | undefined, end?: number | undefined, contentType?: string | undefined): Blob {
-        throw new Error('Function not implemented.');
-    },
-    stream: function (): ReadableStream<Uint8Array> {
-        throw new Error('Function not implemented.');
-    },
-    text: function (): Promise<string> {
-        throw new Error('Function not implemented.');
-    }
-})
 const isFormUploadModalOpen = ref(false)
+const uploadFiles = ref<FileList>()
 
 useHead({
     title: 'Forms - Activiti Devtools',
@@ -41,45 +23,31 @@ useHead({
     ]
 })
 
-const getForms = async () => {
-    const { firestore } = useFirebase();
-    const querySnapshot = await getDocs(collection(firestore, 'forms-meta'))
-    forms.value = querySnapshot.docs.map(doc => doc.data() as FormMeta)
-}
-
 onMounted(async () => {
-    await getForms();
+    const { firestore } = useFirebase();
+    const q = query(collection(firestore, 'forms-meta'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            const form = change.doc.data() as FormMeta;
+            forms.value.push(form);
+        });
+    });
 })
 
 const selectFile = (payload: FileList) => {
-    if (payload.length > 0) {
-        uploadFile.value = payload[0]
-    }
+    uploadFiles.value = payload
 }
 
 const sendFile = async () => {
-    const formData = new FormData()
-    formData.append('file', uploadFile.value)
+    const data = new FormData()
+    if (uploadFiles.value) {
+        for (const file of uploadFiles.value) {
+            data.append('file', file)
+        }
+    }
     $fetch('/api/forms', {
         method: 'post',
-        body: formData
-    }).then((data) => {
-        if (data != null) {
-            forms.value.push(data)
-            toast.add({
-                id: 'form_upload_success',
-                title: 'Form uploaded',
-                description: `${data.name} is uploaded.`,
-                icon: 'i-heroicons-cloud-arrow-up',
-                timeout: 5000,
-                actions: [{
-                    label: 'View',
-                    click: async () => {
-                        await navigateTo(`/forms/${data?.id}`)
-                    }
-                }]
-            })
-        }
+        body: data
     }).catch((error) => {
         console.error(error)
         toast.add({
@@ -105,9 +73,11 @@ const sendFile = async () => {
                         @click="isFormUploadModalOpen = false" />
                 </div>
             </template>
-            <form id="formUpload" enctype="multipart/form-data" @submit.prevent="sendFile">
-                <UFormGroup label="File">
-                    <UInput d="form" ref="file" type="file" accept="application/json" name="file" required
+            <form id="formUpload" class="flex flex-col space-y-4" enctype="multipart/form-data"
+                @submit.prevent="sendFile">
+                <NewFunction description="Multiple file upload now supported." />
+                <UFormGroup label="Files">
+                    <UInput d="form" ref="file" type="file" accept="application/json" name="file" multiple required
                         @change="selectFile" />
                 </UFormGroup>
             </form>
@@ -117,18 +87,21 @@ const sendFile = async () => {
         </UCard>
     </UModal>
     <UButton label="Upload form" @click="isFormUploadModalOpen = true" />
-    <div class="grid grid-cols-4 gap-5 sm:no-grid">
+    <div v-if="forms.length > 0" class="grid grid-cols-4 gap-5 sm:no-grid">
         <UCard v-for="form in forms" :key="form.id" class="">
             <template #header>
-                <h1 class="text-xl">
-                    {{ form.name }}
-                </h1>
+                <h1 class="text-xl">{{ form.name }}</h1>
             </template>
-            <p v-if="form.description == null || form.description == ''" class="italic">No description provided.</p>
-            <p v-else class="italic">{{ form.description }}</p>
+            <p v-if="form.description" class="text-base">{{ form.description }}</p>
+            <p v-else class="text-base italic">No description available.</p>
             <template #footer>
-                <ULink class="btn btn-primary" :to="`/forms/${form.id}`">Open</ULink>
+                <ULink :to="`/forms/${form.id}`">
+                    <UButton>Open</UButton>
+                </ULink>
             </template>
         </UCard>
+    </div>
+    <div v-else class="flex items-center justify-center h-96">
+        <p class="text-xl italics">There are no forms.</p>
     </div>
 </template>
