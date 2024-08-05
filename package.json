@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "firebase-tools": "^13.1.0",
-    "nuxt": "^3.11.1",
+    "nuxt": "^3.12.4",
     "vue": "^3.4.15",
     "vue-router": "^4.2.5"
   },
